@@ -1,0 +1,52 @@
+NAME="w3-dtd-mathml"
+VERSION="2.0"
+RELEASE="1"
+ARCH="noarch"
+
+SRC_URI="http://www.w3.org/Math/DTD/mathml2.tgz"
+SRC_DIR="mathml2"
+
+HOMEPAGE="http://www.w3.org/Math/"
+CATEGORY="Text"
+SUMMARY="Mathematical Markup Language V2.0 DTD"
+DESCRIPTION="
+The Mathematical Markup Language (MathML) V2.0 is an XML
+application for describing mathematical notation
+and capturing both its structure and content.
+
+This package allows you to generate output documents from
+source files that use MathML markup.
+
+Includes a prototype extension of the XHTML 1.1 DTD
+that incorporates MathML 2.0."
+
+REQUIRES="libxml2"
+
+src_compile() {
+  :
+}
+
+src_install() {
+  cd ${S}
+  insinto /usr/share/xml/schema/w3c/mathml/dtd/mathml2
+  doins *.dtd *.mod
+  for ents in html iso8879 iso9573-13 mathml ; do
+      insinto /usr/share/xml/schema/w3c/mathml/dtd/mathml2/$ents
+      doins $ents/*.ent
+  done
+
+  dodir /etc/postinstall /etc/preremove
+
+  cat >> ${D}/etc/postinstall/${PN}.sh <<-_EOF
+	xmlcatalog --noout \
+	--add public "-//W3C//DTD MathML 2.0//EN" "/usr/share/xml/schema/w3c/mathml/dtd/mathml2/mathml2.dtd" \
+	--add system "http://www.w3.org/TR/MathML2/dtd/mathml2.dtd" "/usr/share/xml/schema/w3c/mathml/dtd/mathml2/mathml2.dtd" \
+	/etc/xml/catalog
+	_EOF
+
+  cat >> ${D}/etc/preremove/${PN}.sh <<-_EOF
+	xmlcatalog --noout \
+	--del "/usr/share/xml/schema/w3c/mathml/dtd/mathml2/mathml2.dtd" \
+	/etc/xml/catalog
+	_EOF
+}
